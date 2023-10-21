@@ -21,7 +21,8 @@ Make your health a priority with Vitality Hub!
     cd server && bundle install
     rails server
   ```
-  2.1 For detailed info about server setup, read [this](./server/README.md)
+
+2.1 For detailed info about server setup, read [this](./server/README.md)
 
 1. Install the dependencies and run the client:
 
