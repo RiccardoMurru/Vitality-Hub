@@ -46,7 +46,7 @@ Vitality Hub is built with:
 ## The team
 
 - Riccardo Murru: [GitHub](https://github.com/RiccardoMurru/) - [Linkedin](https://www.linkedin.com/in/riccardomurru/)
-- Patricia Bárcena: [GitHub](https://github.com/Patri27)
-- Hong Nhung Pham: [GitHub](https://github.com/Rosalina1309)
+- Patricia Bárcena: [GitHub](https://github.com/Patri27) - [Linkedin](https://www.linkedin.com/in/patricia-barcena-bescansa/)
+- Hong Nhung Pham: [GitHub](https://github.com/Rosalina1309) - [Linkedin](https://www.linkedin.com/in/hongnhungpham1309/)
 - Quinten Sevinga: [GitHub](https://github.com/Quintensevinga)
-- Daniel Marques: [GitHub](https://github.com/ducknows)
+- Daniel Marques: [GitHub](https://github.com/ducknows) - [Linkedin](https://www.linkedin.com/in/dan-marks-profile/)
