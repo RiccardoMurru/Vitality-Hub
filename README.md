@@ -22,7 +22,7 @@ Make your health a priority with Vitality Hub!
     rails server
   ```
 
-  2.1 For detailed info about server setup, read [this](./server/README.md)
+  2.1. For detailed info about server setup, read [this](./server/README.md)
 
 3. Install the dependencies and run the client:
 
