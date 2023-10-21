@@ -1,89 +1,61 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchRecipes } from '@/apiServices/fetchRecipes';
+import { Recipe } from '@/interfaces/Recipe';
 import styles from '../styles/recipesComponent.module.css';
-import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
-import { fetchRecipesAsync } from '@/slices/recipeSlice';
+import { toggleFavoriteRecipe } from '@/apiServices/toggleFavoriteRecipe';
+import { useAppSelector } from '@/hooks/hooks';
 
 const RecipesComponent: React.FC = () => {
-  const recipes = useAppSelector(state => state.recipes.recipes);
-  const loadingMessage = useAppSelector(state => state.recipes.loadingMessage);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(
+    typeof window !== 'undefined'
+      ? localStorage.getItem('favorites')
+        ? JSON.parse(localStorage.getItem('favorites')!)
+        : []
+      :
+      []
+  );
+
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
-  const [token, setToken] = useState<string | null>(null);
-
-  const [favorites, setFavorites] = useState<string[]>([]);
-  useEffect(() => {
-    if (isAuthenticated) {
-      setToken(localStorage.getItem('token'));
-      setFavorites(
-        localStorage.getItem('favorites')
-          ? JSON.parse(localStorage.getItem('favorites')!)
-          : []
-      );
-      console.log(isAuthenticated);
-    }
-  }, [])
-
-  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchRecipesAsync());
+        const data = await fetchRecipes();
+        setRecipes(data);
       } catch (error) {
         console.error('Error fetching recipes:', error);
       }
     };
+
     fetchData();
   }, []);
 
   const toggleFavorite = async (recipeId: string) => {
-    try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_API_URL as string,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            query: `mutation ToggleFavoriteRecipe {
-              toggleFavorite(type: "recipe", itemId: "${recipeId}") {
-                user {
-                  favoriteRecipes {
-                    recipeId
-                  }
-                }
-              }
-            }`,
-          }),
-        }
-      );
-
-      const responseData = await response.json();
-      const updatedFavorites =
-        responseData.data.toggleFavorite.user.favoriteRecipes.map(
-          (fav: { recipeId: string }) => fav.recipeId
-        );
-      setFavorites(updatedFavorites);
-      localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    if (isAuthenticated) {
+      try {
+        const updatedFavorites = await toggleFavoriteRecipe(recipeId);
+        setFavorites(updatedFavorites);
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+      }
     }
   };
 
   return (
-    <section className={styles.recipesContainer}>
+    <div className={styles.recipesContainer}>
       <h1>Recipes</h1>
       {recipes &&
         recipes.map(recipe => (
           <div className={styles.recipeBox} key={recipe.id}>
-            <img
-              src={recipe.image}
-              alt={recipe.title}
-              className={styles.recipeImage}
-            />
+            <div className={styles.imgContainer}>
+              <img
+                src={recipe.image}
+                alt={recipe.title}
+                className={styles.recipeImage}
+              />
+              <span>Calories: {recipe.calories}</span>
+            </div>
             <h2>{recipe.title}</h2>
             <ul>
               <li>
@@ -110,8 +82,7 @@ const RecipesComponent: React.FC = () => {
             </button>
           </div>
         ))}
-      {loadingMessage && <p className={styles.loading}>{loadingMessage}</p>}
-    </section>
+    </div>
   );
 };
 

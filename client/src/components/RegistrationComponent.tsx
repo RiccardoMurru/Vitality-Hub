@@ -1,63 +1,46 @@
-import React, { useState } from 'react';
-import { useAppSelector, useAppDispatch } from '@/hooks/hooks';
-import styles from '../styles/registrationComponent.module.css';
-import { registerSuccess } from '@/slices/authSlice';
+import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
+import { clearError } from '@/slices/authSlice';
+import styles from '../styles/registrationComponent.module.css'
+import { registerAsync } from '@/apiServices/authApi';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const RegistrationComponent = () => {
-  const isRegistered = useAppSelector(state => state.auth.isRegistered);
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const error = useAppSelector(state => state.auth.registrationError);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('');
 
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, []);
+
   const handleRegistration = async () => {
     try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_API_URL as string,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-            mutation ($input: RegisterUserMutationInput!) {
-              registerUser(input: $input) {
-                token
-              }
-            }
-          `,
-            variables: {
-              input: {
-                username: username,
-                email: email,
-                password: password,
-                gender: gender,
-              },
-            },
-          }),
-        }
-      );
+      const registrationData = {
+        username,
+        email,
+        password,
+        gender,
+      };
 
-      const responseBody = await response.json();
-      console.log(responseBody);
+      const result = await dispatch(registerAsync(registrationData));
 
-      if (
-        responseBody.data &&
-        responseBody.data.registerUser &&
-        responseBody.data.registerUser.token
-      ) {
-        dispatch(registerSuccess(true));
-      } else {
-        console.error('Registration failed.');
+      if (registerAsync.fulfilled.match(result)) {
+        router.push('/login');
       }
-    } catch (err) {
-      console.error('Registration failed: ', err);
+    } catch (e) {
+      console.error('Registration failed: ', e);
     }
   };
+
   return (
     <>
       <div className={styles.registerComponent}>
@@ -94,16 +77,13 @@ const RegistrationComponent = () => {
         <button className={styles.registerButton} onClick={handleRegistration}>
           Register
         </button>
-        {isRegistered && (
-          <p>
-            Registration successful! Please
-            <Link href='/login'> login</Link>
-          </p>
-        )}
+        {error && <p className={styles.error}>{error}</p>}
       </div>
       <div className={styles.goToLoginBox}>
         <p>Already have an account?</p>
-        <Link href='/login'>Login here</Link>
+        <Link href='/login'>
+          Login here
+        </Link>
       </div>
     </>
   );

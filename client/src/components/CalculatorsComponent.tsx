@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import WHRCalculator from './WHRCalComponent';
 import BMICalculator from './BMICalComponent';
@@ -24,6 +23,7 @@ const CalculatorsComponent: React.FC = () => {
       <ul className={styles.tabs}>
         <li>
           <button
+            id='BMIButton'
             onClick={handleShowBMI}
             className={`${showBMI ? styles.active : ''}`}>
             BMI Calculator
@@ -31,6 +31,7 @@ const CalculatorsComponent: React.FC = () => {
         </li>
         <li>
           <button
+            id='WHRButton'
             onClick={handleShowWHR}
             className={`${showWHR ? styles.active : ''}`}>
             WHR Calculator

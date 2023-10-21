@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import styles from '../styles/exercisesComponent.module.css';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
 import {
   fetchExercisesAsync,
+  fetchExercisesByMuscleAsync,
   setMuscle,
   setSelectedExercise,
 } from '@/slices/exercisesSlice';
+import { toggleFavoriteExercise } from '@/apiServices/toggleFavoriteExercise';
 
 const ExercisesComponent: React.FC = () => {
   const muscle = useAppSelector(state => state.exercises.muscle);
@@ -14,6 +17,8 @@ const ExercisesComponent: React.FC = () => {
     state => state.exercises.selectedExercise
   );
   const [favoriteExercises, setFavoriteExercises] = useState<string[]>([]);
+
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -24,7 +29,7 @@ const ExercisesComponent: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        await dispatch(fetchExercisesAsync(''));
+        await dispatch(fetchExercisesAsync());
       } catch (err) {
         console.error('Error fetching exercises:', err);
       }
@@ -45,7 +50,7 @@ const ExercisesComponent: React.FC = () => {
 
     dispatch(setMuscle(value));
     try {
-      await dispatch(fetchExercisesAsync(value));
+      await dispatch(fetchExercisesByMuscleAsync(value));
     } catch (error) {
       console.error(error);
     }
@@ -57,47 +62,16 @@ const ExercisesComponent: React.FC = () => {
   };
 
   const handleToggleFavorite = async (exerciseId: string) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_API_URL as string,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            query: `mutation ToggleFavoriteExercise {
-            toggleFavorite(type: "exercise", itemId: "${exerciseId}") {
-              user {
-                favoriteExercises {
-                  exerciseId
-                }
-              }
-            }
-          }`,
-          }),
-        }
-      );
-
-      const responseData = await response.json();
-      const updatedFavorites =
-        responseData.data.toggleFavorite.user.favoriteExercises.map(
-          (fav: { exerciseId: string }) => fav.exerciseId
-        );
-      setFavoriteExercises(updatedFavorites);
-      localStorage.setItem(
-        'favoriteExercises',
-        JSON.stringify(updatedFavorites)
-      );
-      console.log(localStorage);
-
-
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    if (isAuthenticated) {
+      try {
+        const updatedFavorites = await toggleFavoriteExercise(exerciseId);
+        setFavoriteExercises(updatedFavorites);
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+      }
     }
   };
+
 
   return (
     <div className={styles.container}>
@@ -113,7 +87,7 @@ const ExercisesComponent: React.FC = () => {
       <div className={styles.exercises}>
         {exercises !== null && exercises.length > 0 ? (
           exercises.map(exercise => (
-            <div key={exercise.name} className={styles['exercise-card']}>
+            <div key={exercise.id} className={styles['exercise-card']}>
               <h3>
                 {exercise.name}{' '}
                 <button

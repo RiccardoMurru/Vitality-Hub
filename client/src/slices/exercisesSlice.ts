@@ -19,9 +19,23 @@ const initialState: ExercisesState = {
 
 export const fetchExercisesAsync = createAsyncThunk(
   'exercises/fetchExercises',
-  async (muscle: string): Promise<Exercise[]> => {
+  async (): Promise<Exercise[]> => {
     try {
       const response = await fetchExercises();
+      console.log(response);
+
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const fetchExercisesByMuscleAsync = createAsyncThunk(
+  'exercises/fetchExercisesByMuscle',
+  async (muscle: string): Promise<Exercise[]> => {
+    try {
+      const response = await fetchExercisesByMuscle(muscle);
       console.log(response);
 
       return response;
@@ -53,7 +67,16 @@ export const exerciseSlice = createSlice({
       })
       .addCase(fetchExercisesAsync.rejected, (state, action) => {
         console.error('Error fetching exercises:', action.error);
-      });
+      })
+      .addCase(fetchExercisesByMuscleAsync.pending, (state, action) => {
+        state.exercises = null;
+      })
+      .addCase(fetchExercisesByMuscleAsync.fulfilled, (state, action) => {
+        state.exercises = action.payload.slice(0, 5);
+      })
+      .addCase(fetchExercisesByMuscleAsync.rejected, (state, action) => {
+        console.error('Error fetching exercises by muscle:', action.error);
+      });;
   },
 });
 
